@@ -113,15 +113,15 @@ async function main() {
     "passwordresettoken", "subscriptionpayment", "subscriptionplan", "vendorsubscription"
   ];
 
-  await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 0;`);
+  await prisma.$executeRawUnsafe(`SET session_replication_role = 'replica';`);
   for (const table of tables) {
     try {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${table}\`;`);
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
     } catch (e: any) {
       console.log(`⚠️ Could not truncate ${table}: ${e.message}`);
     }
   }
-  await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 1;`);
+  await prisma.$executeRawUnsafe(`SET session_replication_role = 'origin';`);
 
   const hashedPassword = await bcrypt.hash("Password@123", 10);
 
@@ -401,7 +401,7 @@ async function main() {
         for (let p = 0; p < 5; p++) {
           await prisma.portfolio.create({
             data: {
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               vendorProfileId: vendorProfile.id,
               serviceId: service.id,
               mediaUrl: `https://picsum.photos/seed/${vendorProfileId}-${p}/800/600`,
@@ -416,7 +416,7 @@ async function main() {
       for (let r = 0; r < 5; r++) { // 5 reviews per vendor for speed
         await prisma.review.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             userId: getRandom(customerPool).id,
             vendorId: vendorProfile.id,
             rating: Math.floor(rating),

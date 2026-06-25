@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
-const { randomUUID, crypto } = require("crypto");
+const { randomUUID } = require("crypto");
 
 const prisma = new PrismaClient();
 
@@ -113,15 +113,15 @@ async function main() {
     "passwordresettoken", "subscriptionpayment", "subscriptionplan", "vendorsubscription"
   ];
 
-  await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 0;`);
+  await prisma.$executeRawUnsafe(`SET session_replication_role = 'replica';`);
   for (const table of tables) {
     try {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${table}\`;`);
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
     } catch (e) {
       console.log(`⚠️ Could not truncate ${table}: ${e.message}`);
     }
   }
-  await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 1;`);
+  await prisma.$executeRawUnsafe(`SET session_replication_role = 'origin';`);
 
   const hashedPassword = await bcrypt.hash("Password@123", 10);
 

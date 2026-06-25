@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -15,7 +15,7 @@ model activitylog {
   createdAt DateTime @default(now())
   user      user     @relation(fields: [userId], references: [id], map: "ActivityLog_userId_fkey")
 
-  @@index([userId], map: "ActivityLog_userId_fkey")
+  @@index([userId], map: "ActivityLog_userId_idx")
 }
 
 model auditlog {
@@ -27,7 +27,7 @@ model auditlog {
   createdAt DateTime @default(now())
   user      user?    @relation(fields: [userId], references: [id], map: "AuditLog_userId_fkey")
 
-  @@index([userId], map: "AuditLog_userId_fkey")
+  @@index([userId], map: "AuditLog_userId_idx")
 }
 
 model availability {
@@ -40,7 +40,7 @@ model availability {
   bookingLimit    Int           @default(1)
   vendorprofile   vendorprofile @relation(fields: [vendorProfileId], references: [id], map: "Availability_vendorProfileId_fkey")
 
-  @@index([vendorProfileId], map: "Availability_vendorProfileId_fkey")
+  @@index([vendorProfileId], map: "Availability_vendorProfileId_idx")
 }
 
 model booking {
@@ -90,9 +90,9 @@ model booking {
   refund              refund?
   staff               staff[]
 
-  @@index([couponId], map: "Booking_couponId_fkey")
-  @@index([customerId], map: "Booking_customerId_fkey")
-  @@index([vendorId], map: "Booking_vendorId_fkey")
+  @@index([couponId], map: "Booking_couponId_idx")
+  @@index([customerId], map: "Booking_customerId_idx")
+  @@index([vendorId], map: "Booking_vendorId_idx")
 }
 
 model bookingassignment {
@@ -109,7 +109,7 @@ model bookingassignment {
   vendorprofile vendorprofile            @relation(fields: [vendorId], references: [id], map: "BookingAssignment_vendorId_fkey")
 
   @@unique([bookingId, vendorId], map: "BookingAssignment_bookingId_vendorId_key")
-  @@index([vendorId], map: "BookingAssignment_vendorId_fkey")
+  @@index([vendorId], map: "BookingAssignment_vendorId_idx")
 }
 
 model bookingitem {
@@ -123,9 +123,9 @@ model bookingitem {
   Renamedpackage Renamedpackage? @relation(fields: [packageId], references: [id], map: "BookingItem_packageId_fkey")
   service        service         @relation(fields: [serviceId], references: [id], map: "BookingItem_serviceId_fkey")
 
-  @@index([bookingId], map: "BookingItem_bookingId_fkey")
-  @@index([packageId], map: "BookingItem_packageId_fkey")
-  @@index([serviceId], map: "BookingItem_serviceId_fkey")
+  @@index([bookingId], map: "BookingItem_bookingId_idx")
+  @@index([packageId], map: "BookingItem_packageId_idx")
+  @@index([serviceId], map: "BookingItem_serviceId_idx")
 }
 
 model bookingstatuslog {
@@ -136,7 +136,7 @@ model bookingstatuslog {
   createdAt DateTime                @default(now())
   booking   booking                 @relation(fields: [bookingId], references: [id], map: "BookingStatusLog_bookingId_fkey")
 
-  @@index([bookingId], map: "BookingStatusLog_bookingId_fkey")
+  @@index([bookingId], map: "BookingStatusLog_bookingId_idx")
 }
 
 model staff {
@@ -150,7 +150,7 @@ model staff {
   updatedAt DateTime @updatedAt
   booking   booking  @relation(fields: [bookingId], references: [id], map: "Staff_bookingId_fkey")
 
-  @@index([bookingId], map: "Staff_bookingId_fkey")
+  @@index([bookingId], map: "Staff_bookingId_idx")
 }
 
 model cart {
@@ -203,7 +203,7 @@ model conversationparticipant {
   user           user         @relation(fields: [userId], references: [id], map: "ConversationParticipant_userId_fkey")
 
   @@unique([conversationId, userId], map: "ConversationParticipant_conversationId_userId_key")
-  @@index([userId], map: "ConversationParticipant_userId_fkey")
+  @@index([userId], map: "ConversationParticipant_userId_idx")
 }
 
 model coupon {
@@ -267,7 +267,7 @@ model locationtrackinglog {
   createdAt DateTime @default(now())
   user      user     @relation(fields: [userId], references: [id], map: "LocationTrackingLog_userId_fkey")
 
-  @@index([userId], map: "LocationTrackingLog_userId_fkey")
+  @@index([userId], map: "LocationTrackingLog_userId_idx")
 }
 
 model message {
@@ -283,9 +283,9 @@ model message {
   user              user                @relation(fields: [senderId], references: [id], map: "Message_senderId_fkey")
   messageattachment messageattachment[]
 
-  @@index([bookingId], map: "Message_bookingId_fkey")
-  @@index([conversationId], map: "Message_conversationId_fkey")
-  @@index([senderId], map: "Message_senderId_fkey")
+  @@index([bookingId], map: "Message_bookingId_idx")
+  @@index([conversationId], map: "Message_conversationId_idx")
+  @@index([senderId], map: "Message_senderId_idx")
 }
 
 model messageattachment {
@@ -296,7 +296,7 @@ model messageattachment {
   createdAt DateTime @default(now())
   message   message  @relation(fields: [messageId], references: [id], map: "MessageAttachment_messageId_fkey")
 
-  @@index([messageId], map: "MessageAttachment_messageId_fkey")
+  @@index([messageId], map: "MessageAttachment_messageId_idx")
 }
 
 model notification {
@@ -310,7 +310,7 @@ model notification {
   createdAt DateTime @default(now())
   user      user     @relation(fields: [userId], references: [id], map: "Notification_userId_fkey")
 
-  @@index([userId], map: "Notification_userId_fkey")
+  @@index([userId], map: "Notification_userId_idx")
 }
 
 /// This model has been renamed to 'Renamedpackage' during introspection, because the original name 'package' is reserved.
@@ -328,7 +328,7 @@ model Renamedpackage {
   service     service       @relation(fields: [serviceId], references: [id], map: "Package_serviceId_fkey")
   pricingrule pricingrule[]
 
-  @@index([serviceId], map: "Package_serviceId_fkey")
+  @@index([serviceId], map: "Package_serviceId_idx")
   @@map("package")
 }
 
@@ -347,7 +347,7 @@ model payment {
   booking           booking        @relation(fields: [bookingId], references: [id], map: "Payment_bookingId_fkey")
   payment_split     payment_split?
 
-  @@index([bookingId], map: "Payment_bookingId_fkey")
+  @@index([bookingId], map: "Payment_bookingId_idx")
 }
 
 model payment_split {
@@ -388,7 +388,7 @@ model payout {
   updatedAt     DateTime      @updatedAt
   vendorprofile vendorprofile @relation(fields: [vendorId], references: [id], map: "Payout_vendorId_fkey")
 
-  @@index([vendorId], map: "Payout_vendorId_fkey")
+  @@index([vendorId], map: "Payout_vendorId_idx")
 }
 
 model portfolio {
@@ -402,8 +402,8 @@ model portfolio {
   service         service?      @relation(fields: [serviceId], references: [id], map: "Portfolio_serviceId_fkey")
   vendorprofile   vendorprofile @relation(fields: [vendorProfileId], references: [id], map: "Portfolio_vendorProfileId_fkey")
 
-  @@index([serviceId], map: "Portfolio_serviceId_fkey")
-  @@index([vendorProfileId], map: "Portfolio_vendorProfileId_fkey")
+  @@index([serviceId], map: "Portfolio_serviceId_idx")
+  @@index([vendorProfileId], map: "Portfolio_vendorProfileId_idx")
 }
 
 model pricingrule {
@@ -415,7 +415,7 @@ model pricingrule {
   flatFee        Decimal        @default(0.00) @db.Decimal(10, 2)
   Renamedpackage Renamedpackage @relation(fields: [packageId], references: [id], map: "PricingRule_packageId_fkey")
 
-  @@index([packageId], map: "PricingRule_packageId_fkey")
+  @@index([packageId], map: "PricingRule_packageId_idx")
 }
 
 model refreshtoken {
@@ -426,7 +426,7 @@ model refreshtoken {
   createdAt  DateTime @default(now())
   user       user     @relation(fields: [userId], references: [id], map: "RefreshToken_userId_fkey")
 
-  @@index([userId], map: "RefreshToken_userId_fkey")
+  @@index([userId], map: "RefreshToken_userId_idx")
   @@index([expiryDate])
 }
 
@@ -457,9 +457,9 @@ model review {
   user           user          @relation(fields: [userId], references: [id], map: "Review_userId_fkey")
   vendorprofile  vendorprofile @relation(fields: [vendorId], references: [id], map: "Review_vendorId_fkey")
 
-  @@index([serviceId], map: "Review_serviceId_fkey")
-  @@index([userId], map: "Review_userId_fkey")
-  @@index([vendorId], map: "Review_vendorId_fkey")
+  @@index([serviceId], map: "Review_serviceId_idx")
+  @@index([userId], map: "Review_userId_idx")
+  @@index([vendorId], map: "Review_vendorId_idx")
 }
 
 model service {
@@ -479,8 +479,8 @@ model service {
   servicetype     servicetype      @relation(fields: [serviceTypeId], references: [id], map: "Service_serviceTypeId_fkey")
   vendorprofile   vendorprofile    @relation(fields: [vendorProfileId], references: [id], map: "Service_vendorProfileId_fkey")
 
-  @@index([serviceTypeId], map: "Service_serviceTypeId_fkey")
-  @@index([vendorProfileId], map: "Service_vendorProfileId_fkey")
+  @@index([serviceTypeId], map: "Service_serviceTypeId_idx")
+  @@index([vendorProfileId], map: "Service_vendorProfileId_idx")
 }
 
 model servicetype {
@@ -491,7 +491,7 @@ model servicetype {
   service       service[]
   subcategory   subcategory @relation(fields: [subcategoryId], references: [id], map: "ServiceType_subcategoryId_fkey")
 
-  @@index([subcategoryId], map: "ServiceType_subcategoryId_fkey")
+  @@index([subcategoryId], map: "ServiceType_subcategoryId_idx")
 }
 
 model subcategory {
@@ -501,7 +501,7 @@ model subcategory {
   servicetype servicetype[]
   category    category      @relation(fields: [categoryId], references: [id], map: "Subcategory_categoryId_fkey")
 
-  @@index([categoryId], map: "Subcategory_categoryId_fkey")
+  @@index([categoryId], map: "Subcategory_categoryId_idx")
 }
 
 model transaction {
@@ -516,7 +516,7 @@ model transaction {
   createdAt   DateTime           @default(now())
   wallet      wallet             @relation(fields: [walletId], references: [id], map: "Transaction_walletId_fkey")
 
-  @@index([walletId], map: "Transaction_walletId_fkey")
+  @@index([walletId], map: "Transaction_walletId_idx")
   @@index([createdAt])
 }
 
@@ -559,7 +559,7 @@ model vendordocument {
   createdAt       DateTime              @default(now())
   vendorprofile   vendorprofile         @relation(fields: [vendorProfileId], references: [id], map: "VendorDocument_vendorProfileId_fkey")
 
-  @@index([vendorProfileId], map: "VendorDocument_vendorProfileId_fkey")
+  @@index([vendorProfileId], map: "VendorDocument_vendorProfileId_idx")
 }
 
 model vendorprofile {
@@ -612,7 +612,7 @@ model recurringavailability {
   vendorprofile   vendorprofile @relation(fields: [vendorProfileId], references: [id], map: "RecurringAvailability_vendorProfileId_fkey")
 
   @@unique([vendorProfileId, dayOfWeek])
-  @@index([vendorProfileId], map: "RecurringAvailability_vendorProfileId_fkey")
+  @@index([vendorProfileId], map: "RecurringAvailability_vendorProfileId_idx")
 }
 
 model vendorscore {
@@ -694,7 +694,7 @@ model subscriptionpayment {
   updatedAt          DateTime
   vendorsubscription vendorsubscription         @relation(fields: [subscriptionId], references: [id], map: "SubscriptionPayment_subscriptionId_fkey")
 
-  @@index([subscriptionId], map: "SubscriptionPayment_subscriptionId_fkey")
+  @@index([subscriptionId], map: "SubscriptionPayment_subscriptionId_idx")
 }
 
 model subscriptionplan {
@@ -724,7 +724,7 @@ model vendorsubscription {
   subscriptionplan    subscriptionplan          @relation(fields: [planId], references: [id], map: "VendorSubscription_planId_fkey")
   vendorprofile       vendorprofile             @relation(fields: [vendorProfileId], references: [id], map: "VendorSubscription_vendorProfileId_fkey")
 
-  @@index([planId], map: "VendorSubscription_planId_fkey")
+  @@index([planId], map: "VendorSubscription_planId_idx")
 }
 
 enum bookingstatuslog_status {

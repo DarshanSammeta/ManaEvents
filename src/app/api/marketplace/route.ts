@@ -31,21 +31,21 @@ export async function GET(req: Request) {
       FROM vendorprofile v
       INNER JOIN user u ON v.userId = u.id
       WHERE v.verificationStatus = 'APPROVED'
-      ${city ? Prisma.sql`AND v.city LIKE ${`%${city}%`}` : Prisma.empty}
+      ${city ? Prisma.sql`AND v.city ILIKE ${`%${city}%`}` : Prisma.empty}
       ${query ? Prisma.sql`AND (
-        v.businessName LIKE ${`%${query}%`} OR
-        v.description LIKE ${`%${query}%`} OR
+        v.businessName ILIKE ${`%${query}%`} OR
+        v.description ILIKE ${`%${query}%`} OR
         EXISTS (
           SELECT 1 FROM service s
           LEFT JOIN servicetype st ON s.serviceTypeId = st.id
           LEFT JOIN subcategory sc ON st.subcategoryId = sc.id
           LEFT JOIN category c ON sc.categoryId = c.id
           WHERE s.vendorProfileId = v.id AND (
-            s.title LIKE ${`%${query}%`} OR
-            s.description LIKE ${`%${query}%`} OR
-            st.name LIKE ${`%${query}%`} OR
-            sc.name LIKE ${`%${query}%`} OR
-            c.name LIKE ${`%${query}%`}
+            s.title ILIKE ${`%${query}%`} OR
+            s.description ILIKE ${`%${query}%`} OR
+            st.name ILIKE ${`%${query}%`} OR
+            sc.name ILIKE ${`%${query}%`} OR
+            c.name ILIKE ${`%${query}%`}
           )
         )
       )` : Prisma.empty}
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
       )` : Prisma.empty}
       ${(minPrice !== undefined || maxPrice !== undefined) ? Prisma.sql`AND (
         EXISTS (
-          SELECT 1 FROM \`package\` p
+          SELECT 1 FROM "package" p
           JOIN service s ON p.serviceId = s.id
           WHERE s.vendorProfileId = v.id
           AND p.price >= ${minPrice ?? 0}
@@ -79,24 +79,24 @@ export async function GET(req: Request) {
 
     // Get total count for pagination
     const countResult = await prisma.$queryRaw<any[]>(Prisma.sql`
-      SELECT COUNT(DISTINCT v.id) as total ${baseQuery}
+      SELECT COUNT(DISTINCT v.id)::text as total ${baseQuery}
     `);
-    const total = Number(countResult[0]?.total || 0);
+    const total = parseInt(countResult[0]?.total || "0");
 
     // Dynamic sorting
-    let orderBy = Prisma.sql`ORDER BY v.createdAt DESC`;
+    let orderBy = Prisma.sql`ORDER BY v."createdAt" DESC`;
     if (sort === "price_low") {
-      orderBy = Prisma.sql`ORDER BY minPrice ASC`;
+      orderBy = Prisma.sql`ORDER BY "minPrice" ASC`;
     } else if (sort === "price_high") {
-      orderBy = Prisma.sql`ORDER BY minPrice DESC`;
+      orderBy = Prisma.sql`ORDER BY "minPrice" DESC`;
     } else if (sort === "rating") {
-      orderBy = Prisma.sql`ORDER BY avgRating DESC`;
+      orderBy = Prisma.sql`ORDER BY "avgRating" DESC`;
     } else if (sort === "popularity") {
-      orderBy = Prisma.sql`ORDER BY v.totalBookings DESC`;
+      orderBy = Prisma.sql`ORDER BY v."totalBookings" DESC`;
     } else if (sort === "newest") {
-      orderBy = Prisma.sql`ORDER BY v.createdAt DESC`;
+      orderBy = Prisma.sql`ORDER BY v."createdAt" DESC`;
     } else if (sort === "featured" || sort === "nearby") {
-      orderBy = Prisma.sql`ORDER BY (COALESCE(distance, 100) * 0.4 - COALESCE(avgRating, 0) * 0.8 - COALESCE(v.totalBookings, 0) * 0.2) ASC`;
+      orderBy = Prisma.sql`ORDER BY (COALESCE(distance, 100) * 0.4 - COALESCE("avgRating", 0) * 0.8 - COALESCE(v."totalBookings", 0) * 0.2) ASC`;
     }
 
     // Main data query with aggregates and distance
@@ -106,15 +106,15 @@ export async function GET(req: Request) {
         (
           SELECT MIN(price_val)
           FROM (
-            SELECT MIN(p.price) as price_val FROM \`package\` p JOIN service s ON p.serviceId = s.id WHERE s.vendorProfileId = v.id
+            SELECT MIN(p.price) as price_val FROM "package" p JOIN service s ON p.serviceId = s.id WHERE s.vendorProfileId = v.id
             UNION ALL
-            SELECT MIN(s.basePrice) as price_val FROM service s WHERE s.vendorProfileId = v.id
+            SELECT MIN(s."basePrice") as price_val FROM service s WHERE s.vendorProfileId = v.id
           ) as all_prices
-        ) as minPrice,
-        (SELECT AVG(r.rating) FROM review r WHERE r.vendorId = v.id) as avgRating,
-        (SELECT COUNT(r.id) FROM review r WHERE r.vendorId = v.id) as reviewCount,
+        ) as "minPrice",
+        (SELECT AVG(r.rating) FROM review r WHERE r.vendorId = v.id) as "avgRating",
+        (SELECT COUNT(r.id)::int FROM review r WHERE r.vendorId = v.id) as "reviewCount",
         ${(latNum !== null && lngNum !== null)
-            ? Prisma.sql`ST_Distance_Sphere(point(v.longitude, v.latitude), point(${lngNum}, ${latNum})) / 1000`
+            ? Prisma.sql`(6371 * acos(cos(radians(${latNum})) * cos(radians(v.latitude)) * cos(radians(v.longitude) - radians(${lngNum})) + sin(radians(${latNum})) * sin(radians(v.latitude))))`
             : Prisma.sql`NULL`} as distance
       ${baseQuery}
       ${orderBy}

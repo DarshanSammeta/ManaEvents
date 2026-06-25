@@ -85,7 +85,7 @@ async function main() {
   // 2. Clear Dummy Data (excluding Admins)
   console.log("🧹 Clearing existing test data...");
 
-  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0;');
+  await prisma.$executeRawUnsafe("SET session_replication_role = 'replica';");
 
   const tables = [
     "transaction", "wallet", "payout", "staff", "bookingstatuslog", "bookingitem", "booking",
@@ -101,7 +101,7 @@ async function main() {
         const adminIds = admins.map(a => a.id);
         await prisma.wallet.deleteMany({ where: { userId: { notIn: adminIds } } });
       } else {
-        await prisma.$executeRawUnsafe(`DELETE FROM \`${table}\`;`);
+        await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
       }
     } catch (e) {
       console.log(`⚠️ Skip/Error on ${table}: ${e.message}`);
@@ -112,7 +112,7 @@ async function main() {
   const adminEmails = admins.map(a => a.email);
   await prisma.user.deleteMany({ where: { email: { notIn: adminEmails } } });
 
-  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1;');
+  await prisma.$executeRawUnsafe("SET session_replication_role = 'origin';");
 
   const hashedPassword = await bcrypt.hash("Password@123", 10);
 

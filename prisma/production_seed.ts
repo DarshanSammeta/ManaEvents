@@ -59,7 +59,7 @@ async function main() {
   const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
   console.log(`🛡️ Preserving ${admins.length} Admins.`);
 
-  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0;');
+  await prisma.$executeRawUnsafe("SET session_replication_role = 'replica';");
   const tables = [
     "transaction", "wallet", "payout", "staff", "bookingstatuslog", "bookingitem", "booking",
     "pricingrule", "package", "portfolio", "review", "service", "vendorscore", "vendordocument",
@@ -69,14 +69,14 @@ async function main() {
 
   for (const table of tables) {
     try {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${table}\`;`);
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
     } catch (e: any) {
       console.log(`⚠️ Could not truncate ${table}: ${e.message}`);
     }
   }
 
   await prisma.user.deleteMany({ where: { role: { not: 'ADMIN' } } });
-  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1;');
+  await prisma.$executeRawUnsafe("SET session_replication_role = 'origin';");
 
   const hashedPassword = await bcrypt.hash("Password@123", 10);
 
