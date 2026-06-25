@@ -96,7 +96,7 @@ export async function GET() {
       error: "Internal Server Error",
       details: error.message,
       code: error.code,
-      suggestion: error.code === 'P1001' ? "Database server is unreachable. Please ensure Docker Desktop and the MySQL database container are running." : undefined
+      suggestion: error.code === 'P1001' ? "Database server is unreachable. Please ensure the Supabase/PostgreSQL database is running and the connection string is correct." : undefined
     }, { status: 500 });
   }
 }
